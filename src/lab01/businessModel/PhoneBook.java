@@ -39,6 +39,23 @@ public class PhoneBook implements Serializable {
         return phoneBook.keySet();
     }
 
+    public Set<Person> find(String query) {
+        query = query.toLowerCase();
+        Set<Person> results = new LinkedHashSet<>();
+        for (Map.Entry<Person, Set<String>> entry : phoneBook.entrySet()) {
+            boolean match = entry.getKey().fullName.toLowerCase().contains(query);
+            if (!match)
+                for (String phone : entry.getValue()) {
+                    match = phone.toLowerCase().contains(query);
+                    if (match)
+                        break;
+                }
+            if (match)
+                results.add(entry.getKey());
+        }
+        return results;
+    }
+
     public void save() throws IOException {
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILENAME));
         oos.writeObject(this);
@@ -48,4 +65,5 @@ public class PhoneBook implements Serializable {
     public String toString() {
         return "PhoneBook: "+phoneBook;
     }
+
 }
