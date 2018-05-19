@@ -10,12 +10,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Set;
+import java.util.LinkedList;
 
-public class PhoneBookView extends JFrame {
+public class PhoneBookView extends JFrame implements EditableList.ItemChangeListener {
     private final PhoneBook phoneBook;
     private JTextField searchInputField;
-    private JPanel resultsPanel;
+    private EditableList editableList;
 
     public PhoneBookView(final @NotNull PhoneBook phoneBook, final Runnable onClose) {
         this.phoneBook = phoneBook;
@@ -45,14 +45,11 @@ public class PhoneBookView extends JFrame {
         c.fill = GridBagConstraints.BOTH;
         this.add(searchInputField, c);
 
-        resultsPanel = new JPanel();
-        resultsPanel.setLayout(new GridBagLayout());
         c.weighty = 0.9;
         c.gridx = 0;
         c.gridy = 1;
         c.fill = GridBagConstraints.BOTH;
-        this.add(new JScrollPane(resultsPanel), c);
-
+        this.add(editableList = new EditableList(this), c);
 
         this.setBackground(Color.WHITE);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -62,64 +59,106 @@ public class PhoneBookView extends JFrame {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                onClose.run();
+                if (onClose != null)
+                    onClose.run();
             }
         });
+
         this.onQueryText("");
     }
 
-    private void onQueryText(String text) {
-//        resultsPanel.setLayout(new GridBagLayout());
-//        GridBagConstraints c = new GridBagConstraints();
-//        c.fill = GridBagConstraints.HORIZONTAL;
-//        c.anchor = GridBagConstraints.PAGE_START;
-//        resultsPanel.removeAll();
-//        int y = 0;
-//        for (Person p : text.length() == 0? phoneBook.getPersons() : phoneBook.find(text)) {
-//            c.gridx = 0;
-//            c.gridy = y++;
-//            c.weighty = c.weightx = 1;
-//            resultsPanel.add(new PersonView(p), c);
-//        }
-//        resultsPanel.updateUI();
+    private void onQueryText(String query) {
+        java.util.List<String> texts = new LinkedList<>();
+        for (Person p : (query.length() == 0 ? phoneBook.getPersons() : phoneBook.find(query)))
+            texts.add(p + " - " + phoneBook.getPhones(p));
+        editableList.updateResultsPanel(texts);
+    }
 
+    @Override
+    public void onItemChanged(String newValue) {
+
+    }
+}
+
+class EditableList extends JPanel {
+    private final JPanel resultsPanel;
+    private final Font fontSmall = new Font("SansSerif", Font.PLAIN, 60);
+    private final ItemChangeListener changeListener;
+
+    interface ItemChangeListener {
+        void onItemChanged(final String newValue);
+    }
+
+    EditableList(ItemChangeListener changeListener) {
+        this.changeListener = changeListener;
+
+        resultsPanel = new JPanel();
         resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
-        for (Person p : text.length() == 0? phoneBook.getPersons() : phoneBook.find(text)) {
-            resultsPanel.add(new PersonView(p));
-        }
+
+        this.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.weightx = c.weighty = c.gridwidth = c.gridheight = 1;
+        c.fill = GridBagConstraints.BOTH;
+
+        this.add(new JScrollPane(resultsPanel), c);
+        updateResultsPanel(null);
+    }
+
+    void updateResultsPanel(java.util.List<String> newList) {
+        resultsPanel.removeAll();
+        if (newList != null)
+            for (String s : newList)
+                resultsPanel.add(new Item(s, changeListener));
         resultsPanel.updateUI();
     }
 
-    private class PersonView extends JPanel {
-        private PersonView(final @NotNull Person person) {
-            Font fontSmall = new Font("SansSerif", Font.PLAIN, 40);
+    private class Item extends JPanel {
+        private String text;
 
+        private Item(final @NotNull String text, final @NotNull ItemChangeListener listener) {
+            this.text = text;
             this.setLayout(new GridBagLayout());
             GridBagConstraints c = new GridBagConstraints();
             c.anchor = GridBagConstraints.PAGE_START;
-            c.gridwidth = c.gridheight = 1;
-            c.weighty = 1;
-
             c.fill = GridBagConstraints.HORIZONTAL;
-            c.weightx = 0.6;
-            c.gridx = 0;
+            c.weighty = c.gridwidth = c.gridheight = 1;
             c.gridy = 0;
-            JTextField textField = new JTextField(person + " - " + phoneBook.getPhones(person));
+
+            c.weightx = 0.8;
+            c.gridx = 0;
+            JTextField textField = new JTextField(text);
             textField.setFont(fontSmall);
             textField.setEditable(false);
             this.add(textField, c);
 
             JButton editButton = new JButton("Edit");
-            editButton.setFont(fontSmall.deriveFont(fontSmall.getSize()*0.87f));
+            editButton.setFont(fontSmall.deriveFont(fontSmall.getSize() * 0.87f));
             editButton.addActionListener(e -> {
-
+                textField.setEditable(!textField.isEditable());
+                editButton.setText(textField.isEditable() ? "Finish" : "Edit");
+                if (!textField.isEditable())
+                    listener.onItemChanged(textField.getText());
             });
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.weightx = 0.4;
-            c.gridx = 1;
-            c.gridy = 0;
-            this.add(editButton, c);
 
+            c.weightx = 0.2;
+            c.gridx = 1;
+            this.add(editButton, c);
+            this.setMinimumSize(new Dimension(Integer.MAX_VALUE, 100));
+            this.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Item item = (Item) o;
+            return text.equals(item.text);
+        }
+
+        @Override
+        public int hashCode() {
+            return text.hashCode();
         }
     }
 
