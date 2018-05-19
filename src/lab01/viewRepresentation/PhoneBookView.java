@@ -50,6 +50,7 @@ public class PhoneBookView extends JFrame implements EditableList.ItemChangeList
                 onQueryText(searchInputField.getText());
             }
         });
+        searchInputField.setToolTipText("Search by name or phone");
         c.weighty = 0.1;
         c.gridy = 0;
         c.fill = GridBagConstraints.BOTH;
@@ -147,6 +148,7 @@ class EditableList<ItemData> extends JPanel {
         this.add(new JScrollPane(resultsPanel), c);
 
         final JTextField newItemInputField = new JTextField();
+        newItemInputField.setToolTipText("New item name");
         newItemInputField.setFont(fontSmall);
 
         c.weightx = 0.9;
@@ -161,8 +163,10 @@ class EditableList<ItemData> extends JPanel {
             String text = newItemInputField.getText();
             if (text.length() < 2)
                 JOptionPane.showMessageDialog(this, "Too short name");
-            else
+            else {
                 changeListener.onItemAdded(text);
+                newItemInputField.setText("");
+            }
         });
 
         c.weightx = 0.1;
@@ -296,14 +300,19 @@ class EditPersonFrame extends JFrame {
         editableList = new EditableList<>(new EditableList.ItemChangeListener<String>() {
             @Override
             public void onItemChanged(String s, String editedValue) {
-                phoneBook.getPhones(person).remove(s);
-                phoneBook.getPhones(person).add(editedValue);
+                if (!s.equals(editedValue) && !phoneBook.getPhones(person).add(editedValue))
+                    JOptionPane.showMessageDialog(EditPersonFrame.this, "Duplicated phone!");
+                else {
+                    phoneBook.getPhones(person).remove(s);
+                    phoneBook.getPhones(person).add(editedValue);
+                }
                 onUpdate.run();
             }
 
             @Override
             public void onItemAdded(String newValue) {
-                phoneBook.getPhones(person).add(newValue);
+                if (!phoneBook.getPhones(person).add(newValue))
+                    JOptionPane.showMessageDialog(EditPersonFrame.this, "Duplicated phone!");
                 onUpdate.run();
             }
 
