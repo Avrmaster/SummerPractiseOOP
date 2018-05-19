@@ -210,18 +210,20 @@ class EditableList<ItemData> extends JPanel {
             textField.setEditable(false);
             this.add(textField, c);
 
-            c.weighty = 0.3;
-            c.gridx = 1;
-            JTextField descriptionField = new JTextField(description == null ? "" : description);
-            descriptionField.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    changeListener.onItemPressed(itemData);
-                }
-            });
-            descriptionField.setFont(fontSmall);
-            descriptionField.setEditable(false);
-            this.add(descriptionField, c);
+            if (description != null) {
+                c.weighty = 0.3;
+                c.gridx = 1;
+                JTextField descriptionField = new JTextField(description);
+                descriptionField.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        changeListener.onItemPressed(itemData);
+                    }
+                });
+                descriptionField.setFont(fontSmall);
+                descriptionField.setEditable(false);
+                this.add(descriptionField, c);
+            }
 
             JButton editButton = new JButton("Edit");
             editButton.setFont(fontSmall.deriveFont(fontSmall.getSize() * 0.87f));
@@ -233,7 +235,7 @@ class EditableList<ItemData> extends JPanel {
             });
 
             c.weightx = 0.2;
-            c.gridx = 2;
+            c.gridx++;
             this.add(editButton, c);
 
             JButton deleteButton = new JButton("Delete");
@@ -288,7 +290,7 @@ class EditPersonFrame extends JFrame {
             editableList.updateResultsPanel(
                     phoneBook.getPhones(person),
                     s->s,
-                    s->"");
+                    s->null);
             onUpdated.run();
         };
         editableList = new EditableList<>(new EditableList.ItemChangeListener<String>() {
