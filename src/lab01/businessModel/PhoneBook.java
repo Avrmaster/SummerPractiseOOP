@@ -27,8 +27,16 @@ public class PhoneBook implements Serializable {
         phoneBook = new HashMap<>();
     }
 
+    public boolean addPerson(final @NotNull Person person) {
+        for (Person p : find(person.fullName))
+            if (p != person && p.fullName.equals(person.fullName))
+                return false;
+        phoneBook.put(person, new LinkedHashSet<>());
+        return true;
+    }
+
     public boolean addPhone(final @NotNull Person person, final @NotNull String newPhone) {
-        return phoneBook.computeIfAbsent(person, person1 -> new LinkedHashSet<>()).add(newPhone);
+        return phoneBook.get(person).add(newPhone);
     }
 
     public Set<String> getPhones(final @NotNull Person person) {
@@ -37,6 +45,10 @@ public class PhoneBook implements Serializable {
 
     public Set<Person> getPersons() {
         return phoneBook.keySet();
+    }
+
+    public void removePerson(final @NotNull Person person) {
+        phoneBook.remove(person);
     }
 
     public Set<Person> find(String query) {
@@ -63,7 +75,7 @@ public class PhoneBook implements Serializable {
 
     @Override
     public String toString() {
-        return "PhoneBook: "+phoneBook;
+        return "PhoneBook: " + phoneBook;
     }
 
 }

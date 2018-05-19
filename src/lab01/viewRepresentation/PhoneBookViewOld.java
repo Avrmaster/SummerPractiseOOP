@@ -112,6 +112,3 @@ public class PhoneBookViewOld extends JFrame {
 
 }
 
-interface ItemChangeListener {
-    void onItemChanged(final String newValue);
-}

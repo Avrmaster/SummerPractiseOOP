@@ -3,9 +3,11 @@ package lab01.businessModel;
 import com.sun.istack.internal.NotNull;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class Person implements Serializable {
-    public final String fullName;
+    private final String ID = UUID.randomUUID().toString();
+    public String fullName;
 
     public Person(final @NotNull String fullName) {
         this.fullName = fullName;
@@ -23,11 +25,11 @@ public class Person implements Serializable {
 
         Person person = (Person) o;
 
-        return fullName.equals(person.fullName);
+        return ID.equals(person.ID);
     }
 
     @Override
     public int hashCode() {
-        return fullName.hashCode();
+        return ID.hashCode();
     }
 }
