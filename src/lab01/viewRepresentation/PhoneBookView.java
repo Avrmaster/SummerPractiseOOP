@@ -166,6 +166,7 @@ class EditableList<ItemData> extends JPanel {
             else {
                 changeListener.onItemAdded(text);
                 newItemInputField.setText("");
+                newItemInputField.requestFocus();
             }
         });
 
@@ -217,7 +218,8 @@ class EditableList<ItemData> extends JPanel {
             if (description != null) {
                 c.weighty = 0.3;
                 c.gridx = 1;
-                JTextField descriptionField = new JTextField(description);
+                JTextField descriptionField = new JTextField(description.length() > 20?
+                        description.substring(0, 20)+".." : description);
                 descriptionField.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
