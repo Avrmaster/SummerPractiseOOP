@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import static utils.JFrameUtils.centerAndNormalize;
+import static utils.JFrameUtils.centerAndNormalizeFrame;
 
 public class ResizableFrame extends JFrame {
 
@@ -47,7 +47,7 @@ public class ResizableFrame extends JFrame {
             }
         }).start();
 
-        centerAndNormalize(this);
+        centerAndNormalizeFrame(this);
     }
 
 }

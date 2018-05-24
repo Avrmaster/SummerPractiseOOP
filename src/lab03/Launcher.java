@@ -2,27 +2,41 @@ package lab03;
 
 import java.io.*;
 
+import static utils.JFrameUtils.promptToChooseFile;
+import static utils.JFrameUtils.showTextInFrame;
+
 public class Launcher {
 
-    private final static String FILENAME = "loremIpsum.txt";
     private final static String OUTPUT_FILENAME = "processed.txt";
 
     public static void main(String[] args) {
+        new Launcher();
+    }
 
-        try (FileInputStream fis = new FileInputStream(FILENAME);
-             PrintWriter pw = new PrintWriter(OUTPUT_FILENAME)) {
+    private Launcher() {
 
-            while (fis.available() > 0) {
-                final char in = (char) fis.read();
-                if (in != '\n' && in != '\r')
-                    pw.print(in == '\t' ? ' ' : in);
+        promptToChooseFile(s -> {
+            try (FileInputStream fis = new FileInputStream(s);
+                 PrintWriter pw = new PrintWriter(OUTPUT_FILENAME)) {
+
+                StringBuilder inputBuilder = new StringBuilder();
+                StringBuilder outputBuilder = new StringBuilder();
+                while (fis.available() > 0) {
+                    final char in = (char) fis.read();
+                    inputBuilder.append(in);
+                    if (in != '\n' && in != '\r') {
+                        final char out = in == '\t' ? ' ' : in;
+                        outputBuilder.append(out);
+                        pw.print(out);
+                    }
+                }
+                showTextInFrame("input", inputBuilder.toString());
+                showTextInFrame("output", outputBuilder.toString());
+
+            } catch (IOException e) {
+                System.out.println("Something went wrong: " + e);
             }
-
-
-        } catch (IOException e) {
-            System.out.println("Something went wrong: " + e);
-        }
-
+        }, "txt");
     }
 
 }
