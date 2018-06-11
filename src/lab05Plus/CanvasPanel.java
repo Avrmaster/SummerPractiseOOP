@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +17,7 @@ public class CanvasPanel extends JComponent {
     private Color currentColor = Color.RED;
     private Shape currentShape = Shape.values()[0];
     private Point currentStart, currentEnd;
+    private int currentWeight = 3;
 
     CanvasPanel() {
         addMouseMotionListener(new MouseMotionAdapter() {
@@ -36,7 +38,6 @@ public class CanvasPanel extends JComponent {
                 currentStart = currentEnd = null;
             }
         });
-
         new Thread(() -> {
             while (!Thread.interrupted()) {
                 repaint();
@@ -47,10 +48,15 @@ public class CanvasPanel extends JComponent {
                 }
             }
         }).start();
+        this.setComponentPopupMenu(createPopupMenu());
     }
 
     public void setCurrentColor(Color currentColor) {
         this.currentColor = currentColor;
+    }
+
+    public void setCurrentShape(final Shape shape) {
+        currentShape = shape;
     }
 
     @Override
@@ -85,24 +91,62 @@ public class CanvasPanel extends JComponent {
                 drawLine(graphics, currentStart, currentEnd);
                 break;
             case OVAL:
+                Stroke oldStroke = ((Graphics2D)graphics).getStroke();
+                ((Graphics2D)graphics).setStroke(new BasicStroke(currentWeight));
                 graphics.drawOval(startX, startY, Math.abs(deltaX), Math.abs(deltaY));
+                ((Graphics2D)graphics).setStroke(oldStroke);
                 break;
-            case TRIANGLE:
+            case TRIANGLE: {
                 final Point p1 = new Point(currentStart.x, currentEnd.y);
                 final Point p2 = new Point(currentEnd.x, currentEnd.y);
-                final Point p3 = new Point((currentStart.x+currentEnd.x)/2, currentStart.y);
+                final Point p3 = new Point((currentStart.x + currentEnd.x) / 2, currentStart.y);
                 drawLine(graphics, p1, p2);
                 drawLine(graphics, p1, p3);
                 drawLine(graphics, p2, p3);
-                break;
-            case RECTANGLE:
-                graphics.drawRect(startX, startY, Math.abs(deltaX), Math.abs(deltaY));
-                break;
+            }
+            break;
+            case RECTANGLE: {
+                final Point p1 = new Point(startX, startY);
+                final Point p2 = new Point(startX + Math.abs(deltaX), startY);
+                final Point p3 = new Point(startX + Math.abs(deltaX), startY+Math.abs(deltaY));
+                final Point p4 = new Point(startX, startY+Math.abs(deltaY));
+                drawLine(graphics, p1, p2);
+                drawLine(graphics, p2, p3);
+                drawLine(graphics, p3, p4);
+                drawLine(graphics, p4, p1);
+            }
+            break;
         }
     }
 
     private void drawLine(final Graphics graphics, final Point start, final Point end) {
-        graphics.drawLine(start.x, start.y, end.x, end.y);
+        Graphics2D graphics2D = (Graphics2D) graphics;
+
+        AffineTransform affineTransform = graphics2D.getTransform();
+
+        graphics2D.translate(start.x, start.y);
+        int dx = end.x - start.x;
+        int dy = end.y - start.y;
+        graphics2D.rotate(Math.atan2(dy, dx));
+        graphics2D.fillRect(0, -currentWeight/2, (int) Math.sqrt(dx * dx + dy * dy), currentWeight);
+
+        graphics2D.setTransform(affineTransform);
+    }
+
+    private JPopupMenu createPopupMenu() {
+        final JPopupMenu menu = new JPopupMenu();
+
+        JSlider slider = new JSlider(JSlider.HORIZONTAL);
+        slider.setMinimum(1);
+        slider.setMaximum(10);
+        slider.setValue(currentWeight);
+        slider.addChangeListener(e -> {
+            currentWeight = slider.getValue();
+        });
+        menu.add(new JLabel("Weight"));
+        menu.add(slider);
+
+        return menu;
     }
 
     public synchronized void saveToFile(final File file) {
@@ -123,7 +167,4 @@ public class CanvasPanel extends JComponent {
         }
     }
 
-    public void setCurrentShape(final Shape shape) {
-        currentShape = shape;
-    }
 }
