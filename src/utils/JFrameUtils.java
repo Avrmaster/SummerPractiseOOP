@@ -11,29 +11,37 @@ import java.util.function.Consumer;
 
 public class JFrameUtils {
     public static void centerAndNormalizeFrame(final JFrame frame) {
-        centerAndNormalizeFrame(frame, 2f/3);
+        centerAndNormalizeFrame(frame, 2f / 3);
     }
 
     public static void centerAndNormalizeFrame(final JFrame frame, float weight) {
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setLocation((int)(screenSize.width*(1-weight)/2), (int)(screenSize.height*(1-weight)/2));
-        frame.setSize((int)(screenSize.width*weight), (int)(screenSize.height*weight));
+        frame.setLocation((int) (screenSize.width * (1 - weight) / 2), (int) (screenSize.height * (1 - weight) / 2));
+        frame.setSize((int) (screenSize.width * weight), (int) (screenSize.height * weight));
         frame.setVisible(true);
     }
 
-    public static void promptToChooseFile(final Consumer<String> onFileChosen, String ... extensions) {
+    public static void promptToChooseFile(final Consumer<String> onFileChosen, String... extensions) {
+        promptFile(onFileChosen, 0, extensions);
+    }
+
+    public static void promptToSaveFile(final Consumer<String> onFileChosen, String... extensions) {
+        promptFile(onFileChosen, 1, extensions);
+    }
+
+    private static void promptFile(final Consumer<String> onFileChosen, int mode, String... extensions) {
         new Thread(() -> {
             final JFileChooser fc = new JFileChooser();
             try {
                 fc.setCurrentDirectory(new File(System.getProperty("user.home") + File.separator + "desktop"));
             } catch (Exception e) {/* is directory wasn't found */}
-            fc.setFileFilter(new FileNameExtensionFilter("Text", extensions));
+            fc.setFileFilter(new FileNameExtensionFilter("Image", extensions));
 
             JFrame jFrame = new JFrame();
             jFrame.setAlwaysOnTop(true);
 
-            int returnVal = fc.showOpenDialog(jFrame);
+            int returnVal = mode == 0 ? fc.showOpenDialog(jFrame) : fc.showSaveDialog(jFrame);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 onFileChosen.accept(fc.getSelectedFile().getPath());
             }
