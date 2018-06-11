@@ -10,12 +10,15 @@ import java.io.File;
 import java.util.function.Consumer;
 
 public class JFrameUtils {
-
     public static void centerAndNormalizeFrame(final JFrame frame) {
+        centerAndNormalizeFrame(frame, 2f/3);
+    }
+
+    public static void centerAndNormalizeFrame(final JFrame frame, float weight) {
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setLocation(screenSize.width/6, screenSize.height/6);
-        frame.setSize(screenSize.width*2/3, screenSize.height*2/3);
+        frame.setLocation((int)(screenSize.width*(1-weight)/2), (int)(screenSize.height*(1-weight)/2));
+        frame.setSize((int)(screenSize.width*weight), (int)(screenSize.height*weight));
         frame.setVisible(true);
     }
 
