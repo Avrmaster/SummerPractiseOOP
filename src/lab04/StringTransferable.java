@@ -1,6 +1,5 @@
 package lab04;
 
-import javax.swing.*;
 import java.awt.datatransfer.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

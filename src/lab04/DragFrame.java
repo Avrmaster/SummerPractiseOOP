@@ -25,10 +25,11 @@ public class DragFrame extends JFrame {
         DragColumn dragColumn1 = new DragColumn(screenSize.width / 4, list1);
         DragColumn dragColumn2 = new DragColumn(screenSize.width / 4, list2);
 
-        dragColumn1.setPreferredSize(new Dimension(100, 100));
+//        dragColumn1.setPreferredSize(new Dimension(1200, list1.size()*100));
+//        dragColumn2.setPreferredSize(new Dimension(1200, list1.size()*100));
 
         this.add(new JScrollPane(dragColumn1), BorderLayout.WEST);
-        this.add(new JScrollPane(dragColumn2), BorderLayout.WEST);
+        this.add(new JScrollPane(dragColumn2), BorderLayout.EAST);
         JFrameUtils.centerAndNormalizeFrame(this);
     }
 
@@ -48,6 +49,7 @@ public class DragFrame extends JFrame {
             for (String s : list) {
                 this.add(new DraggableTextField(s, index++));
             }
+            this.setPreferredSize(new Dimension(1200, list.size()*100));
             this.updateUI();
         }
 
@@ -58,7 +60,7 @@ public class DragFrame extends JFrame {
             final String text;
             final int indexInList;
 
-            final Color dragOverColor = Color.decode("#560505");
+            final Color dragOverColor = Color.GREEN;
 
             private DraggableTextField(String text, int indexInList) {
                 super(text);
