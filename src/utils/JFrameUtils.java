@@ -36,7 +36,8 @@ public class JFrameUtils {
             try {
                 fc.setCurrentDirectory(new File(System.getProperty("user.home") + File.separator + "desktop"));
             } catch (Exception e) {/* is directory wasn't found */}
-            fc.setFileFilter(new FileNameExtensionFilter("Image", extensions));
+            if (mode == 1)
+                fc.setFileFilter(new FileNameExtensionFilter("Image", extensions));
 
             JFrame jFrame = new JFrame();
             jFrame.setAlwaysOnTop(true);

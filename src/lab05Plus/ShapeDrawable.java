@@ -2,15 +2,18 @@ package lab05Plus;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.io.Serializable;
 
-public class ShapeDrawable {
+public class ShapeDrawable implements Serializable {
+    final int ID;
+
     public Point start, end;
     public int weight;
     public Shape shape;
     public boolean filled;
     public Color color;
 
-    public ShapeDrawable(Point start, Point end, Color color, int weight, Shape shape, boolean filled) {
+    public ShapeDrawable(int ID, Point start, Point end, Color color, int weight, Shape shape, boolean filled) {
         if (start != null && end != null) {
             this.start = new Point(start);
             this.end = new Point(end);
@@ -19,9 +22,10 @@ public class ShapeDrawable {
         this.shape = shape;
         this.filled = filled;
         this.color = color;
+        this.ID = ID;
     }
 
-    public void drawShape(final Graphics graphics) {
+    public void drawShape(final Graphics graphics, final boolean outline) {
         if (start == null || end == null)
             return;
         graphics.setColor(color);
@@ -73,6 +77,12 @@ public class ShapeDrawable {
             }
             break;
         }
+
+        if (outline) {
+            graphics.setColor(Color.CYAN);
+            Rectangle outlineRect = getOutline();
+            graphics.drawRect(outlineRect.x, outlineRect.y, outlineRect.width, outlineRect.height);
+        }
     }
 
     private void drawLine(final Graphics graphics, final Point start, final Point end) {
@@ -89,4 +99,50 @@ public class ShapeDrawable {
         graphics2D.setTransform(affineTransform);
     }
 
+    public boolean isInside(final Point point) {
+        return getOutline().contains(point);
+    }
+
+    public int getEditMode(final Point point) {
+        if (isInOutline(point)) {
+            if (point.y > getOutline().getCenterY())
+                return 0;
+
+            return 1;
+        } else if (isInside(point)) return 2;
+        return -1;
+    }
+
+    public boolean isInOutline(final Point point) {
+        final Rectangle outline = getOutline();
+        final Rectangle outOutline = new Rectangle(outline);
+        outOutline.grow(10, 10);
+        final Rectangle innerOutline = new Rectangle(outline);
+        innerOutline.grow(-10, -10);
+        return outOutline.contains(point) && !innerOutline.contains(point);
+    }
+
+    private Rectangle getOutline() {
+        if (start != null && end != null) {
+            final int startX = Math.min(start.x, end.x) - 5;
+            final int startY = Math.min(start.y, end.y) - 5;
+            final int deltaX = start.x - end.x;
+            final int deltaY = start.y - end.y;
+            return new Rectangle(startX, startY, Math.abs(deltaX) + 10, Math.abs(deltaY) + 10);
+        } else return new Rectangle();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ShapeDrawable that = (ShapeDrawable) o;
+        return ID == that.ID;
+    }
+
+    @Override
+    public int hashCode() {
+        return ID;
+    }
 }
