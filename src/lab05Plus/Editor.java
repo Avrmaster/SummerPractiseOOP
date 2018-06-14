@@ -29,7 +29,8 @@ class Editor extends JFrame {
         this.setJMenuBar(createMenu(
                 canvasPanel::saveToFile,
                 canvasPanel::loadFromFile,
-                canvasPanel::setCurrentShape
+                canvasPanel::setCurrentShape,
+                canvasPanel::setCurrentFillMode
         ));
         JFrameUtils.centerAndNormalizeFrame(this, 0.8f);
     }
@@ -47,7 +48,8 @@ class Editor extends JFrame {
     private JMenuBar createMenu(
             final Consumer<File> onSave,
             final Consumer<File> onLoad,
-            final Consumer<Shape> onChooseShape
+            final Consumer<Shape> onChooseShape,
+            final Consumer<Boolean> onFilledMode
     ) {
         final JMenuBar menuBar = new JMenuBar();
         final JMenu fileMenu = new JMenu("File");
@@ -85,6 +87,13 @@ class Editor extends JFrame {
             group.add(shapeChooserMenuItem);
             shapeMenu.add(shapeChooserMenuItem);
         }
+
+        shapeMenu.addSeparator();
+        final JCheckBoxMenuItem checkBoxMenuItem = new JCheckBoxMenuItem("Filled");
+        checkBoxMenuItem.setMnemonic('F');
+        checkBoxMenuItem.setAccelerator(KeyStroke.getKeyStroke('F', KeyEvent.CTRL_MASK));
+        checkBoxMenuItem.addActionListener(e -> onFilledMode.accept(checkBoxMenuItem.getState()));
+        shapeMenu.add(checkBoxMenuItem);
 
         menuBar.add(shapeMenu);
 

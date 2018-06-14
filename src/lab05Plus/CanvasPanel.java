@@ -10,16 +10,21 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 
 public class CanvasPanel extends JComponent {
+
+    private java.util.List<ShapeDrawable> allShapes;
 
     private BufferedImage paintImage;
     private Color currentColor = Color.RED;
     private Shape currentShape = Shape.values()[0];
     private Point currentStart, currentEnd;
+    private boolean currentFillMode = false;
     private int currentWeight = 3;
 
     CanvasPanel() {
+        allShapes = new LinkedList<>();
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
@@ -34,7 +39,9 @@ public class CanvasPanel extends JComponent {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                drawShape(paintImage.getGraphics());
+                allShapes.add(
+                        new ShapeDrawable(currentStart, currentEnd, currentColor,
+                                currentWeight, currentShape, currentFillMode));
                 currentStart = currentEnd = null;
             }
         });
@@ -55,6 +62,10 @@ public class CanvasPanel extends JComponent {
         this.currentColor = currentColor;
     }
 
+    public void setCurrentFillMode(boolean fillMode) {
+        this.currentFillMode = fillMode;
+    }
+
     public void setCurrentShape(final Shape shape) {
         currentShape = shape;
     }
@@ -66,71 +77,19 @@ public class CanvasPanel extends JComponent {
         g.getClipBounds(bounds);
         if (paintImage == null) {
             paintImage = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_3BYTE_BGR);
-            Graphics imageGraphics = paintImage.getGraphics();
-            imageGraphics.setColor(Color.WHITE);
-            imageGraphics.fillRect(0, 0, paintImage.getWidth(), paintImage.getHeight());
         }
+        Graphics imageGraphics = paintImage.getGraphics();
+        imageGraphics.setColor(Color.WHITE);
+        imageGraphics.fillRect(0, 0, paintImage.getWidth(), paintImage.getHeight());
+        for (ShapeDrawable shapeDrawable : allShapes) {
+            shapeDrawable.drawShape(imageGraphics);
+        }
+        new ShapeDrawable(currentStart, currentEnd, currentColor, currentWeight, currentShape, currentFillMode)
+                .drawShape(imageGraphics);
+
         g.drawImage(paintImage, 0, 0, null);
-        drawShape(g);
         g.setColor(Color.GREEN);
         g.drawRect(2, 0, bounds.width - 4, bounds.height - 4);
-    }
-
-    private void drawShape(final Graphics graphics) {
-        if (currentStart == null || currentEnd == null)
-            return;
-        graphics.setColor(currentColor);
-
-        final int startX = Math.min(currentStart.x, currentEnd.x);
-        final int startY = Math.min(currentStart.y, currentEnd.y);
-        final int deltaX = currentStart.x - currentEnd.x;
-        final int deltaY = currentStart.y - currentEnd.y;
-
-        switch (currentShape) {
-            case LINE:
-                drawLine(graphics, currentStart, currentEnd);
-                break;
-            case OVAL:
-                Stroke oldStroke = ((Graphics2D)graphics).getStroke();
-                ((Graphics2D)graphics).setStroke(new BasicStroke(currentWeight));
-                graphics.drawOval(startX, startY, Math.abs(deltaX), Math.abs(deltaY));
-                ((Graphics2D)graphics).setStroke(oldStroke);
-                break;
-            case TRIANGLE: {
-                final Point p1 = new Point(currentStart.x, currentEnd.y);
-                final Point p2 = new Point(currentEnd.x, currentEnd.y);
-                final Point p3 = new Point((currentStart.x + currentEnd.x) / 2, currentStart.y);
-                drawLine(graphics, p1, p2);
-                drawLine(graphics, p1, p3);
-                drawLine(graphics, p2, p3);
-            }
-            break;
-            case RECTANGLE: {
-                final Point p1 = new Point(startX, startY);
-                final Point p2 = new Point(startX + Math.abs(deltaX), startY);
-                final Point p3 = new Point(startX + Math.abs(deltaX), startY+Math.abs(deltaY));
-                final Point p4 = new Point(startX, startY+Math.abs(deltaY));
-                drawLine(graphics, p1, p2);
-                drawLine(graphics, p2, p3);
-                drawLine(graphics, p3, p4);
-                drawLine(graphics, p4, p1);
-            }
-            break;
-        }
-    }
-
-    private void drawLine(final Graphics graphics, final Point start, final Point end) {
-        Graphics2D graphics2D = (Graphics2D) graphics;
-
-        AffineTransform affineTransform = graphics2D.getTransform();
-
-        graphics2D.translate(start.x, start.y);
-        int dx = end.x - start.x;
-        int dy = end.y - start.y;
-        graphics2D.rotate(Math.atan2(dy, dx));
-        graphics2D.fillRect(0, -currentWeight/2, (int) Math.sqrt(dx * dx + dy * dy), currentWeight);
-
-        graphics2D.setTransform(affineTransform);
     }
 
     private JPopupMenu createPopupMenu() {
