@@ -14,23 +14,21 @@ public class DragFrame extends JFrame {
         this.setLayout(new BorderLayout());
 
         java.util.List<String> list1 = new ArrayList<>();
-        list1.add("0");
-        list1.add("1");
-        list1.add("2");
-        list1.add("3");
-        list1.add("4");
+        for (int i = 0; i < 100; i++) {
+            list1.add("Lefts " + i);
+        }
         java.util.List<String> list2 = new ArrayList<>();
-        list2.add("5");
-        list2.add("6");
-        list2.add("7");
-        list2.add("8");
-        list2.add("9");
+        for (int i = 0; i < 100; i++) {
+            list2.add("Rights " + i);
+        }
 
         DragColumn dragColumn1 = new DragColumn(screenSize.width / 4, list1);
         DragColumn dragColumn2 = new DragColumn(screenSize.width / 4, list2);
 
-        this.add(dragColumn1, BorderLayout.EAST);
-        this.add(dragColumn2, BorderLayout.WEST);
+        dragColumn1.setPreferredSize(new Dimension(100, 100));
+
+        this.add(new JScrollPane(dragColumn1), BorderLayout.WEST);
+        this.add(new JScrollPane(dragColumn2), BorderLayout.WEST);
         JFrameUtils.centerAndNormalizeFrame(this);
     }
 
@@ -66,6 +64,11 @@ public class DragFrame extends JFrame {
                 super(text);
                 this.text = text;
                 this.indexInList = indexInList;
+                Dimension goalSize = new Dimension(1300, 100);
+
+                this.setPreferredSize(goalSize);
+                this.setMinimumSize(goalSize);
+                this.setMaximumSize(goalSize);
 
                 setHighlighter(null);
                 setFont(getFont().deriveFont(75f));
@@ -76,6 +79,7 @@ public class DragFrame extends JFrame {
                 dragSource.addDragSourceListener(this);
 
                 dropTarget = new DropTarget(this, DnDConstants.ACTION_COPY, this, true);
+                this.setBackground(Color.WHITE);
             }
 
             @Override
@@ -123,7 +127,7 @@ public class DragFrame extends JFrame {
             @Override
             public void dragOver(DropTargetDragEvent dtde) {
 //                System.out.println("dragOver " + dtde);
-                this.setText(text+"\n"+StringTransferable.extractString(dtde.getTransferable()));
+                this.setText(text + "\n" + StringTransferable.extractString(dtde.getTransferable()));
                 this.setBackground(dragOverColor);
             }
 
@@ -143,7 +147,7 @@ public class DragFrame extends JFrame {
             public void drop(DropTargetDropEvent dtde) {
                 String item = StringTransferable.extractString(dtde.getTransferable());
                 if (item != null) {
-                    list.add(indexInList+1, item);
+                    list.add(indexInList + 1, item);
                     updateItems();
                 }
                 this.setBackground(Color.WHITE);
